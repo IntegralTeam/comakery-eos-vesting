@@ -1,2 +1,7 @@
 local-wd
 *.pwd
+.vscode/
+node_modules/
+nodeos.log
+cmkryvesting/cmkryvesting.abi
+cmkryvesting/cmkryvesting.wasm
