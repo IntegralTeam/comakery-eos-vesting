@@ -27,6 +27,84 @@ const USDT_SYMBOL_STR = 'USDT';
 const ORE_SYMBOL_STR = 'ORE';
 
 
+const CMKRYVESTING = 'cmkryvesting';
+
+const ACTION_ADDASSET = 'addasset';
+
+export async function addasset(asset_contract,asset_symbol) {
+  const result = await api.transact({
+            actions:[{
+                account: 'eosio',
+                name: 'addasset',
+                authorization: [{
+                    actor: 'eosio',
+                    permission: 'active',
+                }],
+                data: {
+                    asset_contract: asset_contract,
+                    asset_symbol: asset_symbol,
+                }
+            }]
+        },
+        {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        });
+        console.dir(result);
+}
+
+export async function token_issue(to,quantity,memo = ' ') {
+
+  let issuer = 'eosio';
+  if(to == issuer) {
+    const result = await api.transact({
+      actions:[{
+        account: 'eosio.token',
+        name: 'issue',
+        authorization: [{
+          actor: to,
+          permission: 'active',
+        }],
+        data: {
+          to: to,
+          quantity: quantity,
+          memo: memo
+        }
+      }]
+    },{
+    blocksBehind: 3,
+    expireSeconds: 30,
+    });
+    return result;
+  }
+  return await token_trans(issuer,to,quantity);
+}
+
+export async function token_trans(from,to,quantity,memo) {
+  const resault = await api.transact({
+    actions: [{
+      account: 'eosio.token',
+      name: 'transfer',
+      authorization: [{
+        actor: 'eosio',
+        permission: 'active',
+      }],
+      data: {
+        from: from,
+        to: to,
+        quantity: quantity,
+        memo: memo
+      }
+    }]
+  }, {
+    blocksBehind: 3,
+    expireSeconds: 30,
+  });
+}
+
+// export get_contract_by_token(currency) {
+//   let ctract = EOS
+// }
 // node only; native TextEncoder/Decoder
 export async function get_info() {
   let res = await rpc.get_info();
@@ -196,4 +274,61 @@ export async function contract_set() {
     } catch (error) {
         console.log(error);
     }
+}
+
+export async function with_drow_action(user,quantity){
+  const resault = await api.transact({
+    actions: [{
+      account: CMKRYVESTING,
+      name: 'transfer',
+      authorization: [{
+        actor: CMKRYVESTING,
+        permission: 'active',
+      }],
+      data: {
+        to: user,
+        quantity: quantity,
+      }
+    }]
+  }, {
+    blocksBehind: 3,
+    expireSeconds: 30,
+  });
+}
+
+export async function addvesting_action(account_id,vesting_period,vesting_amount,cliff_date,cliff_weight,start_date,end_date) {
+  const result = await api.transact({
+    actions:[{
+        account: 'comakeryteam',
+        name: 'addvesting',
+        authorization: [{
+            actor: 'comakeryteam',
+            permission: 'active',
+        }],
+        data: {
+            account_id: account_id,
+            vesting_period: vesting_period,
+            vesting_amount:vesting_amount,
+            cliff_date: cliff_date,
+            cliff_weight: cliff_weight,
+            start_date: start_date,
+            end_date: end_date,
+        }
+    }]
+},
+{
+    blocksBehind: 3,
+    expireSeconds: 30,
+});
+}
+
+
+export async function base_test(){
+  await contract_set();
+  await create_accounts('user','usermonthly','userweekly','userdaily','usersecondly','userlocked');
+  await token_issue('user','1000 EOS');
+  await token_trans('user','1000 EOS','deposid');
+  await with_drow_action('user','1000 EOS');
+  await addvesting_action('usermonthly',1,'100 EOS','2021-02-01T00:00:00',0.5,'2020-02-01T00:00:00','2022-02-01T00:00:00');
+
 }
