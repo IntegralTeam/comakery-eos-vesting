@@ -1,131 +1,215 @@
 {
-  "____comment": "",
-  "version": "eosio::abi/1.0",
-  "types": [
-{"new_type_name":"n","type":"name"},
-{"new_type_name":"a","type":"asset"},
-{"new_type_name":"u","type":"uint32"},
-{"new_type_name":"l","type":"uint64"},
-{"new_type_name":"f","type":"float64"},
-{"new_type_name":"t","type":"time_point_sec"},
-{"new_type_name":"s","type":"string"},
-{"new_type_name":"c","type":"symbol"}
-  ],
-  "structs": [
-    {
-      "name": "empty",
-      "fields": []
-    },
-    {
-      "name":"cmkasset",
-      "fields":[
-{"name":"asset_symbol","type":"c"},
-{"name":"asset_contract","type":"n"},
-{"name":"asset_balance","type":"a"},
-{"name":"unallocated_balance","type":"a"}
-       ]
-    },
-    {
-       "name":"addasset",
-       "fields":[
-{"name":"asset_contract","type":"n"},
-{"name":"asset_symbol","type":"c"}
-       ]
-    },
-    {
-       "name":"withdraw",
-       "fields":[
-{"name":"to","type":"n"},
-{"name":"quantity","type":"a"}
-       ]
-    },
-    {
-       "name":"cmkvesting",
-       "fields":[
-{"name":"vesting_id","type":"l"},
-{"name":"account_id","type":"n"},
-{"name":"vesting_period","type":"u"},
-{"name":"vesting_amount","type":"a"},
-{"name":"cliff_date","type":"t"},
-{"name":"cliff_weight","type":"f"},
-{"name":"start_date","type":"t"},
-{"name":"end_date","type":"t"},
-{"name":"pause_start","type":"t"},
-{"name":"pause_time","type":"l"},
-{"name":"status","type":"u"},
-{"name":"vested_amount","type":"a"}
-       ]
-    },
-    {
-       "name":"addvesting",
-       "fields":[
-{"name":"account_id","type":"n"},
-{"name":"vesting_period","type":"u"},
-{"name":"vesting_amount","type":"a"},
-{"name":"cliff_date","type":"t"},
-{"name":"cliff_weight","type":"f"},
-{"name":"start_date","type":"t"},
-{"name":"end_date","type":"t"}
-       ]
-    },
-    {
-       "name":"pausevesting",
-       "fields":[
-{"name":"vesting_id","type":"l"},
-{"name":"pause_start","type":"t"}
-       ]
-    },
-    {
-       "name":"unpausevestng",
-       "fields":[
-{"name":"vesting_id","type":"l"},
-{"name":"pause_end","type":"t"}
-       ]
-    },
-    {
-       "name":"setpausetime",
-       "fields":[
-{"name":"vesting_id","type":"l"},
-{"name":"pause_time","type":"l"}
-       ]
-    },
-    {
-       "name":"cancelvesting",
-       "fields":[
-{"name":"vesting_id","type":"l"},
-{"name":"cancel_start","type":"t"}
-       ]
-    },
-    {
-       "name":"claim",
-       "fields":[
-{"name":"vesting_id","type":"l"}
-       ]
-    },
-    {
-       "name":"removevesting",
-       "fields":[
-{"name":"vesting_id","type":"l"}
-       ]
-    }
-  ],
-  "actions": [
-{"name":"currentver","type":"empty"},
-{"name":"getcurrent","type":"empty"},
-{"name":"addasset","type":"addasset"},
-{"name":"withdraw","type":"withdraw"},
-{"name":"addvesting","type":"addvesting"},
-{"name":"pausevesting","type":"pausevesting"},
-{"name":"unpausevestng","type":"unpausevestng"},
-{"name":"setpausetime","type":"setpausetime"},
-{"name":"cancelvesting","type":"cancelvesting"},
-{"name":"claim","type":"claim"},
-{"name":"removevesting","type":"removevesting"}
-  ],
-  "tables": [
-{"name":"cmkassets","type":"cmkasset","index_type":"i64","key_names":["asset_symbol"],"key_types":["uint64"]},
-{"name":"cmkvestings","type":"cmkvesting","index_type":"i64","key_names":["vesting_id"],"key_types":["uint64"]}
- ],
-  "ricardian_clauses": [],
-  "abi_extensions": []
+    "____comment": "This file was generated with eosio-abigen. DO NOT EDIT ",
+    "version": "eosio::abi/1.1",
+    "types": [],
+    "structs": [
+        {
+            "name": "addasset",
+            "base": "",
+            "fields": [
+                {
+                    "name": "asset_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "asset_symbol",
+                    "type": "symbol"
+                }
+            ]
+        },
+        {
+            "name": "addvesting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "account_id",
+                    "type": "name"
+                },
+                {
+                    "name": "vesting_period",
+                    "type": "uint32"
+                },
+                {
+                    "name": "vesting_amount",
+                    "type": "asset"
+                },
+                {
+                    "name": "cliff_date",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "cliff_weight",
+                    "type": "float64"
+                },
+                {
+                    "name": "start_date",
+                    "type": "time_point_sec"
+                },
+                {
+                    "name": "end_date",
+                    "type": "time_point_sec"
+                }
+            ]
+        },
+        {
+            "name": "cancelvesting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "cancel_start",
+                    "type": "time_point_sec"
+                }
+            ]
+        },
+        {
+            "name": "claim",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "currentver",
+            "base": "",
+            "fields": []
+        },
+        {
+            "name": "getcurrent",
+            "base": "",
+            "fields": []
+        },
+        {
+            "name": "pausevesting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "pause_start",
+                    "type": "time_point_sec"
+                }
+            ]
+        },
+        {
+            "name": "removevesting",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "setpausetime",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "pause_time",
+                    "type": "uint64"
+                }
+            ]
+        },
+        {
+            "name": "unpausevestng",
+            "base": "",
+            "fields": [
+                {
+                    "name": "vesting_id",
+                    "type": "uint64"
+                },
+                {
+                    "name": "pause_end",
+                    "type": "time_point_sec"
+                }
+            ]
+        },
+        {
+            "name": "withdraw",
+            "base": "",
+            "fields": [
+                {
+                    "name": "to",
+                    "type": "name"
+                },
+                {
+                    "name": "quantity",
+                    "type": "asset"
+                }
+            ]
+        }
+    ],
+    "actions": [
+        {
+            "name": "addasset",
+            "type": "addasset",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "addvesting",
+            "type": "addvesting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "cancelvesting",
+            "type": "cancelvesting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "claim",
+            "type": "claim",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "currentver",
+            "type": "currentver",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "getcurrent",
+            "type": "getcurrent",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "pausevesting",
+            "type": "pausevesting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "removevesting",
+            "type": "removevesting",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "setpausetime",
+            "type": "setpausetime",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "unpausevestng",
+            "type": "unpausevestng",
+            "ricardian_contract": ""
+        },
+        {
+            "name": "withdraw",
+            "type": "withdraw",
+            "ricardian_contract": ""
+        }
+    ],
+    "tables": [],
+    "ricardian_clauses": [],
+    "variants": []
 }

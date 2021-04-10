@@ -1,4 +1,5 @@
 const { Api, JsonRpc } = require("eosjs");
+const { Serialize } = require(`eosjs`);
 const { JsSignatureProvider } = require("eosjs/dist/eosjs-jssig"); // development only
 const fetch = require("node-fetch"); //node only
 const { TextDecoder, TextEncoder, isString } = require("util"); //node only
@@ -7,6 +8,7 @@ const privateKeys = [privateKey1];
 
 const signatureProvider = new JsSignatureProvider(privateKeys);
 const rpc = new JsonRpc("http://127.0.0.1:8888", { fetch }); //required to read blockchain state
+const fs = require('fs');
 const api = new Api({
   rpc,
   signatureProvider,
@@ -28,6 +30,23 @@ const ORE_SYMBOL_STR = 'ORE';
 
 
 const CMKRYVESTING = 'cmkryvesting';
+const EOSDTORCLIZE = 'eosdtorclize';
+const EOSDTCNTRACT = 'eosdtcntract';
+const ORACLERATES  = 'orarates';
+const EOSDTLIQDATR = 'eosdtliqdatr';
+const EOSDTNUTOKEN = 'eosdtnutoken';
+const EOSDTSTTOKEN = 'eosdtsttoken';
+const EOSDTGOVERNC = 'eosdtgovernc';
+const EOSDTBPPROXY = 'eosdtbpproxy';
+const EOSDTEXCHANG = 'eosdtexchang';
+const TOKENSWAP_EQ = 'tokenswap.eq';
+const EOSIO_EVM = 'eosio.evm';
+const EOSDTSAVINGS = 'eosdtsavings';
+const TETHERTETHER = 'tethertether';
+const EOS2DTDOTCOM = 'eos2dtdotcom';
+const EOSLOTTERYEQ = 'eoslotteryeq';
+const EOSDTKGTOKEN = 'eosdtkgtoken';
+const DAPPSERVICES = 'dappservices'
 
 const ACTION_ADDASSET = 'addasset';
 
@@ -111,10 +130,7 @@ export async function get_info() {
   console.log(res);
 }
 
-export async function print_time() {
-  let res = await rpc.get_info().head_block_time;
-  console.log(res);
-  rpc.push_transaction();
+export async function print_time() {transact
 }
 
 // export async function create_accounts() {
@@ -184,7 +200,7 @@ export async function create_accounts(names) {
 
 // }
 
-export async function wasmabi_set(wasm_path,abi_path) {
+export async function wasmabi_set(wasm_path,abi_path,contract_name) {
   const wasmFilePath = wasm_path;
   const abiFilePath = abi_path;
 
@@ -203,7 +219,7 @@ export async function wasmabi_set(wasm_path,abi_path) {
     abiJSON
   );
   abiDefinitions.serialize(buffer, abiJSON);
-  serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString("hex");
+  let serializedAbiHexString = Buffer.from(buffer.asUint8Array()).toString("hex");
 
   await api.transact(
     {
@@ -213,12 +229,14 @@ export async function wasmabi_set(wasm_path,abi_path) {
           name: "setcode",
           authorization: [
             {
-              actor: "eosio",
+              actor: contract_name,
               permission: "active",
             },
           ],
           data: {
-            account: "eosio",
+            account: contract_name,
+            vmtype: '0',
+            vmversion: '0',
             code: wasmHexString,
           },
         },
@@ -227,12 +245,12 @@ export async function wasmabi_set(wasm_path,abi_path) {
           name: "setabi",
           authorization: [
             {
-              actor: "eosio",
+              actor: contract_name,
               permission: "active",
             },
           ],
           data: {
-            account: "eosio",
+            account: contract_name,
             abi: serializedAbiHexString,
           },
         },
@@ -245,32 +263,70 @@ export async function wasmabi_set(wasm_path,abi_path) {
   );
 }
 
+
+export async function addasset_action(asset_contract,asset_symbol) {
+  const result = await api.transact({
+            actions:[{
+                account: CMKRYVESTING,
+                name: 'addasset',
+                authorization: [{
+                    actor: CMKRYVESTING,
+                    permission: 'active',
+                }],
+                data: {
+                    asset_contract: asset_contract,
+                    asset_symbol: asset_symbol,
+                }
+            }]
+        },
+        {
+            blocksBehind: 3,
+            expireSeconds: 30,
+        });
+  }
+
 export async function contract_set() {
     let accounts = ['eosio.bpay','eosio.msig','eosio.names','eosio.ram','eosio.ramfee',
                     'eosio.saving','eosio.stake','eosio.token','eosio.vpay','eosio.rex'];
+    let accounts_2 = ['manager',EOSDTORCLIZE,EOSDTCNTRACT,ORACLERATES,
+    'oraclizeconn','provableconn',EOSDTLIQDATR,
+    EOSDTNUTOKEN, EOSDTSTTOKEN, EOSDTGOVERNC, EOSDTBPPROXY, EOSDTEXCHANG, TOKENSWAP_EQ, EOSIO_EVM,
+    EOSDTSAVINGS,TETHERTETHER, EOS2DTDOTCOM, EOSLOTTERYEQ, CMKRYVESTING, EOSDTKGTOKEN, DAPPSERVICES];
+
     
     try {
-        await create_accounts(accounts);
-        wasmabi_set(
-            '../system_contracts/eosio.token/eosio.token.wasm',
-            '../system_contracts/eosio.token/eosio.token.abi'
-        );
-        wasmabi_set(
+        //await create_accounts(accounts);
+        //await create_accounts(accounts_2);
+        await wasmabi_set(
+          '../system_contracts/eosio.token/eosio.token.wasm',
+          '../system_contracts/eosio.token/eosio.token.abi',
+          'eosio.token'
+      );
+        await wasmabi_set(
             '../system_contracts/eosio.wrap/eosio.wrap.wasm',
-            '../system_contracts/eosio.wrap/eosio.wrap.abi'
+            '../system_contracts/eosio.wrap/eosio.wrap.abi',
+            'eosio.wrap'
         );
-        wasmabi_set(
+        await wasmabi_set(
             '../system_contracts/eosio.msig/eosio.msig.wasm',
-            '../system_contracts/eosio.msig/eosio.msig.abi'
+            '../system_contracts/eosio.msig/eosio.msig.abi',
+            'eosio.msig'
         );
-        wasmabi_set(
+        await wasmabi_set(
             '../system_contracts/eosio.bios/eosio.bios.wasm',
-            '../system_contracts/eosio.bios/eosio.bios.abi'
+            '../system_contracts/eosio.bios/eosio.bios.abi',
+            'eosio.bios'
         );
-        wasmabi_set(
+        await wasmabi_set(
             '../system_contracts/eosio.wrap/eosio.wrap.wasm',
-            'system_contracts/eosio.wrap/eosio.wrap.abi'
-        )
+            '../system_contracts/eosio.wrap/eosio.wrap.abi',
+            'eosio.wrap'
+        );
+        await wasmabi_set(
+          '../cmkryvesting/cmkryvesting.wasm',
+          '../cmkryvesting/cmkryvesting.abi',
+          'cmkryvesting'
+      );
     } catch (error) {
         console.log(error);
     }
@@ -299,10 +355,10 @@ export async function with_drow_action(user,quantity){
 export async function addvesting_action(account_id,vesting_period,vesting_amount,cliff_date,cliff_weight,start_date,end_date) {
   const result = await api.transact({
     actions:[{
-        account: 'comakeryteam',
+        account: CMKRYVESTING,
         name: 'addvesting',
         authorization: [{
-            actor: 'comakeryteam',
+            actor: CMKRYVESTING,
             permission: 'active',
         }],
         data: {
@@ -324,8 +380,9 @@ export async function addvesting_action(account_id,vesting_period,vesting_amount
 
 
 export async function base_test(){
+  const accounts = ['user','usermonthly','userweekly','userdaily','usersecondly','userlocked'];
   await contract_set();
-  await create_accounts('user','usermonthly','userweekly','userdaily','usersecondly','userlocked');
+  await create_accounts(accounts);
   await token_issue('user','1000 EOS');
   await token_trans('user','1000 EOS','deposid');
   await with_drow_action('user','1000 EOS');
