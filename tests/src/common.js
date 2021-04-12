@@ -67,21 +67,51 @@ export async function addasset(asset_contract, asset_symbol) {
     blocksBehind: 3,
     expireSeconds: 30,
   });
-  console.dir(result);
+  console.log("addasset: " + result);
 }
 
-export async function token_issue(to, quantity, memo = ' ') {
-  let issuer = 'eosio';
-  if (to == issuer) {
-    const result = await api.transact({
+export async function token_issue(to, quantity, memo = '') {
+  try {
+    let issuer = 'eosio';
+    if (to == issuer) {
+      const result = await api.transact({
+        actions: [{
+          account: 'eosio.token',
+          name: 'issue',
+          authorization: [{
+            actor: to,
+            permission: 'active',
+          }],
+          data: {
+            to: to,
+            quantity: quantity,
+            memo: memo
+          }
+        }]
+      }, {
+        blocksBehind: 3,
+        expireSeconds: 30,
+      });
+      return result;
+    }
+    return await token_trans(issuer, to, quantity, memo);
+  } catch (e) {
+    console.log("token_issue: " + e);
+  }
+}
+
+export async function token_trans(from, to, quantity, memo = '') {
+  try {
+    await api.transact({
       actions: [{
         account: 'eosio.token',
-        name: 'issue',
+        name: 'transfer',
         authorization: [{
-          actor: to,
+          actor: 'eosio',
           permission: 'active',
         }],
         data: {
+          from: from,
           to: to,
           quantity: quantity,
           memo: memo
@@ -91,31 +121,9 @@ export async function token_issue(to, quantity, memo = ' ') {
       blocksBehind: 3,
       expireSeconds: 30,
     });
-    return result;
+  } catch (e) {
+    console.log("token_trans: " + e);
   }
-  return await token_trans(issuer, to, quantity);
-}
-
-export async function token_trans(from, to, quantity, memo) {
-  const result = await api.transact({
-    actions: [{
-      account: 'eosio.token',
-      name: 'transfer',
-      authorization: [{
-        actor: 'eosio',
-        permission: 'active',
-      }],
-      data: {
-        from: from,
-        to: to,
-        quantity: quantity,
-        memo: memo
-      }
-    }]
-  }, {
-    blocksBehind: 3,
-    expireSeconds: 30,
-  });
 }
 
 // export get_contract_by_token(currency) {
@@ -124,67 +132,81 @@ export async function token_trans(from, to, quantity, memo) {
 // node only; native TextEncoder/Decoder
 export async function get_info() {
   let res = await rpc.get_info();
-  console.log(res);
+  console.log("get_info: " + res);
 }
 
 // export async function print_time() {}
 // export async function create_accounts() {}
 
 export async function create_account(account_name) {
-  let res = await api.transact(
-    {
-      actions: [
-        {
-          account: "eosio",
-          name: "newaccount",
-          authorization: [
-            {
-              actor: "eosio",
-              permission: "active",
-            },
-          ],
-          data: {
-            creator: "eosio",
-            name: account_name,
-            owner: {
-              threshold: 1,
-              keys: [
-                {
-                  key: "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                  weight: 1,
-                },
-              ],
-              accounts: [],
-              waits: [],
-            },
-            active: {
-              threshold: 1,
-              keys: [
-                {
-                  key: "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
-                  weight: 1,
-                },
-              ],
-              accounts: [],
-              waits: [],
+  try {
+    await api.transact(
+      {
+        actions: [
+          {
+            account: "eosio",
+            name: "newaccount",
+            authorization: [
+              {
+                actor: "eosio",
+                permission: "active",
+              },
+            ],
+            data: {
+              creator: "eosio",
+              name: account_name,
+              owner: {
+                threshold: 1,
+                keys: [
+                  {
+                    key: "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                    weight: 1,
+                  },
+                ],
+                accounts: [],
+                waits: [],
+              },
+              active: {
+                threshold: 1,
+                keys: [
+                  {
+                    key: "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5So8BhtHuGYqET5GDW5CV",
+                    weight: 1,
+                  },
+                ],
+                accounts: [],
+                waits: [],
+              },
             },
           },
-        },
-      ],
-    },
-    {
-      blocksBehind: 3,
-      expireSeconds: 30,
-    }
-  );
-
-  console.log(res);
+        ],
+      },
+      {
+        blocksBehind: 3,
+        expireSeconds: 30,
+      }
+    );
+    console.log("create_account: " + account_name);
+  } catch (e) {
+    console.log("create_account: " + e.json.error.what);
+  }
 }
 
 export async function create_accounts(names) {
   for (let index = 0; index < names.length; index++) {
     const element = names[index];
     await create_account(element);
+  }
+}
+
+export async function create_accounts_and_wasmabi_set(names) {
+  for (let index = 0; index < names.length; index++) {
+    const element = names[index];
+    await create_account(element);
+    await wasmabi_set(
+      `../system_contracts/${element}/${element}.wasm`,
+      `../system_contracts/${element}/${element}.abi`,
+      element)
   }
 }
 
@@ -247,8 +269,7 @@ export async function wasmabi_set(wasm_path, abi_path, contract_name) {
           },
         },
       ],
-    },
-    {
+    }, {
       blocksBehind: 3,
       expireSeconds: 30,
     }
@@ -256,7 +277,7 @@ export async function wasmabi_set(wasm_path, abi_path, contract_name) {
 }
 
 export async function addasset_action(asset_contract, asset_symbol) {
-  const result = await api.transact({
+  await api.transact({
     actions: [{
       account: CMKRYVESTING,
       name: 'addasset',
@@ -276,53 +297,57 @@ export async function addasset_action(asset_contract, asset_symbol) {
 }
 
 export async function contract_set() {
-  let accounts = ['eosio.bpay', 'eosio.msig', 'eosio.names', 'eosio.ram', 'eosio.ramfee',
-    'eosio.saving', 'eosio.stake', 'eosio.token', 'eosio.vpay', 'eosio.rex'];
-  let accounts_2 = ['manager', EOSDTORCLIZE, EOSDTCNTRACT, ORACLERATES,
-    'oraclizeconn', 'provableconn', EOSDTLIQDATR,
-    EOSDTNUTOKEN, EOSDTSTTOKEN, EOSDTGOVERNC, EOSDTBPPROXY, EOSDTEXCHANG, TOKENSWAP_EQ, EOSIO_EVM,
-    EOSDTSAVINGS, TETHERTETHER, EOS2DTDOTCOM, EOSLOTTERYEQ, CMKRYVESTING, EOSDTKGTOKEN, DAPPSERVICES];
+  // let accounts = ['eosio.bpay', 'eosio.msig', 'eosio.names', 'eosio.ram', 'eosio.ramfee',
+  //   'eosio.saving', 'eosio.stake', 'eosio.token', 'eosio.vpay', 'eosio.rex'];
+  // let accounts_2 = ['manager', EOSDTORCLIZE, EOSDTCNTRACT, ORACLERATES,
+  //   'oraclizeconn', 'provableconn', EOSDTLIQDATR,
+  //   EOSDTNUTOKEN, EOSDTSTTOKEN, EOSDTGOVERNC, EOSDTBPPROXY, EOSDTEXCHANG, TOKENSWAP_EQ, EOSIO_EVM,
+  //   EOSDTSAVINGS, TETHERTETHER, EOS2DTDOTCOM, EOSLOTTERYEQ, CMKRYVESTING, EOSDTKGTOKEN, DAPPSERVICES];
+  let system_contracts = ['eosio.token', 'eosio.wrap', 'eosio.msig', 'eosio.bios'];
 
   try {
     // await create_accounts(accounts);
     // await create_accounts(accounts_2);
-    await wasmabi_set(
-      '../system_contracts/eosio.token/eosio.token.wasm',
-      '../system_contracts/eosio.token/eosio.token.abi',
-      'eosio.token'
-    );
-    await wasmabi_set(
-      '../system_contracts/eosio.wrap/eosio.wrap.wasm',
-      '../system_contracts/eosio.wrap/eosio.wrap.abi',
-      'eosio.wrap'
-    );
-    await wasmabi_set(
-      '../system_contracts/eosio.msig/eosio.msig.wasm',
-      '../system_contracts/eosio.msig/eosio.msig.abi',
-      'eosio.msig'
-    );
-    await wasmabi_set(
-      '../system_contracts/eosio.bios/eosio.bios.wasm',
-      '../system_contracts/eosio.bios/eosio.bios.abi',
-      'eosio.bios'
-    );
-    await wasmabi_set(
-      '../system_contracts/eosio.wrap/eosio.wrap.wasm',
-      '../system_contracts/eosio.wrap/eosio.wrap.abi',
-      'eosio.wrap'
-    );
+    await create_accounts(['cmkryvesting']);
+    await create_accounts_and_wasmabi_set(system_contracts);
+    // await wasmabi_set(
+    //   '../system_contracts/eosio.token/eosio.token.wasm',
+    //   '../system_contracts/eosio.token/eosio.token.abi',
+    //   'eosio.token'
+    // );
+    // await wasmabi_set(
+    //   '../system_contracts/eosio.wrap/eosio.wrap.wasm',
+    //   '../system_contracts/eosio.wrap/eosio.wrap.abi',
+    //   'eosio.wrap'
+    // );
+    // await wasmabi_set(
+    //   '../system_contracts/eosio.msig/eosio.msig.wasm',
+    //   '../system_contracts/eosio.msig/eosio.msig.abi',
+    //   'eosio.msig'
+    // );
+    // await wasmabi_set(
+    //   '../system_contracts/eosio.bios/eosio.bios.wasm',
+    //   '../system_contracts/eosio.bios/eosio.bios.abi',
+    //   'eosio.bios'
+    // );
+    // await wasmabi_set(
+    //   '../system_contracts/eosio.wrap/eosio.wrap.wasm',
+    //   '../system_contracts/eosio.wrap/eosio.wrap.abi',
+    //   'eosio.wrap'
+    // );
     await wasmabi_set(
       '../cmkryvesting/cmkryvesting.wasm',
       '../cmkryvesting/cmkryvesting.abi',
       'cmkryvesting'
     );
+    console.log("contract_set: Done!");
   } catch (error) {
-    console.log(error);
+    console.log("contract_set: " + error);
   }
 }
 
 export async function with_drow_action(user, quantity) {
-  const resault = await api.transact({
+  await api.transact({
     actions: [{
       account: CMKRYVESTING,
       name: 'transfer',
@@ -342,7 +367,7 @@ export async function with_drow_action(user, quantity) {
 }
 
 export async function addvesting_action(account_id, vesting_period, vesting_amount, cliff_date, cliff_weight, start_date, end_date) {
-  const result = await api.transact({
+  await api.transact({
     actions: [{
       account: CMKRYVESTING,
       name: 'addvesting',
@@ -360,11 +385,10 @@ export async function addvesting_action(account_id, vesting_period, vesting_amou
         end_date: end_date,
       }
     }]
-  },
-    {
-      blocksBehind: 3,
-      expireSeconds: 30,
-    });
+  }, {
+    blocksBehind: 3,
+    expireSeconds: 30,
+  });
 }
 
 export async function base_test() {
@@ -372,7 +396,7 @@ export async function base_test() {
   await contract_set();
   await create_accounts(accounts);
   await token_issue('user', '1000 EOS');
-  await token_trans('user', '1000 EOS', 'deposid');
-  await with_drow_action('user', '1000 EOS');
-  await addvesting_action('usermonthly', 1, '100 EOS', '2021-02-01T00:00:00', 0.5, '2020-02-01T00:00:00', '2022-02-01T00:00:00');
+  await token_trans('eosio', 'user', '1000 EOS');
+  // await with_drow_action('user', '1000 EOS');
+  // await addvesting_action('usermonthly', 1, '100 EOS', '2021-02-01T00:00:00', 0.5, '2020-02-01T00:00:00', '2022-02-01T00:00:00');
 }
