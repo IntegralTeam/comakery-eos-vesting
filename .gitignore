@@ -2,6 +2,7 @@ local-wd
 *.pwd
 .vscode/
 node_modules/
+tests/build
 nodeos.log
 cmkryvesting/cmkryvesting.abi
 cmkryvesting/cmkryvesting.wasm
